@@ -12,6 +12,8 @@
         :key="node.id"
         :node="node"
         :parent-node="node"
+        :nodesName="nodesName"
+        :textName="textName"
         v-on:emitNodeChecked="onNodeChecked"
         v-on:emitNodeExpanded="onNodeExpanded"
         v-on:emitNodeSelected="onNodeSelected">
@@ -41,6 +43,14 @@ export default {
     nodes: {
       type: Array,
       required: true
+    },
+    nodesName: {
+      default: 'nodes',
+      type: String
+    },
+    textName: { 
+      default: 'text',
+      type: String
     }
   },
   data () {
@@ -112,7 +122,7 @@ export default {
         if (nodeId == node.id && maxDepth >= depth) {
           ret.unshift(node.id)
           return false
-        } else if (node.nodes && maxDepth > depth && (tmp = _this.recFindNodePath(nodeId, node.nodes, depth + 1, maxDepth)) != null && tmp.length > 0) {
+        } else if (node[nodesName] && maxDepth > depth && (tmp = _this.recFindNodePath(nodeId, node[nodesName], depth + 1, maxDepth)) != null && tmp.length > 0) {
           tmp.unshift(node.id)
           ret = tmp
           return false
@@ -133,7 +143,7 @@ export default {
         if (nodeId == node.id && maxDepth >= depth) {
           ret = node
           return false
-        } else if (node.nodes && maxDepth > depth && (tmp = _this.recFindNode(nodeId, node.nodes, depth + 1, maxDepth)) != null) {
+        } else if (node[nodesName] && maxDepth > depth && (tmp = _this.recFindNode(nodeId, node[nodesName], depth + 1, maxDepth)) != null) {
           ret = tmp
           return false
         }
@@ -233,9 +243,9 @@ export default {
     recExpandAllNodes (nodes) {
       let hasChild = false
       for (let node of nodes) {
-        if (node.nodes) {
+        if (node[nodesName]) {
           hasChild = true
-          if (this.recExpandAllNodes(node.nodes) === false) {
+          if (this.recExpandAllNodes(node[nodesName]) === false) {
             this.expandNode(node.id)
           }
         }
@@ -321,7 +331,7 @@ export default {
             arr.push(node[argWanted])
           }
         }
-        arr = arr.concat(_this.recGetNodesData(argWanted, conditions, node.nodes))
+        arr = arr.concat(_this.recGetNodesData(argWanted, conditions, node[nodesName]))
       })
       return arr
     },
@@ -331,9 +341,9 @@ export default {
       if (nodes === undefined || nodes.length === 0) return arr
       nodes.forEach((node) => {
         if (node.state && Object.keys(node.state).filter(key => conditions[key] === node.state[key]).length === Object.keys(conditions).length) {
-          arr[node.id] = _this.recGetNodesDataWithFormat(argWanted, conditions, node.nodes)
+          arr[node.id] = _this.recGetNodesDataWithFormat(argWanted, conditions, node[nodesName])
         } else {
-          Object.assign(arr, _this.recGetNodesDataWithFormat(argWanted, conditions, node.nodes))
+          Object.assign(arr, _this.recGetNodesDataWithFormat(argWanted, conditions, node[nodesName]))
         }
       })
       return arr

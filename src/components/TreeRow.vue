@@ -6,14 +6,14 @@
     <div class="row_data"
       :style="styles.row.child"
       @click="toggleEvent('selected', node, 'node', $event)">
-      <span @click.stop="options.events.expanded.state == true && node.nodes != undefined && node.nodes.length > 0 && toggleEvent('expanded', node)">
+      <span @click.stop="options.events.expanded.state == true && node[nodesName] != undefined && node[nodesName].length > 0 && toggleEvent('expanded', node)">
         <span v-for="(count, index) in depth" class="tree-indent" v-bind:key="index"></span>
         <i
-          v-if="options.events.expanded.state == true && node.nodes != undefined && node.nodes.length > 0"
+          v-if="options.events.expanded.state == true && node[nodesName] != undefined && node[nodesName].length > 0"
           :class="[{'expanded': expanded == true}, styles.expanded.class]">
         </i>
         <span
-          v-else-if="options.events.expanded.state == true && node.nodes == undefined"
+          v-else-if="options.events.expanded.state == true && node[nodesName] == undefined"
           class="small-tree-indent">
         </span>
       </span>
@@ -39,7 +39,7 @@
         v-bind:class="{'selected': selected}"
         :style="selected ? styles.text.active.style : styles.text.style"
         @click.stop="options.events.editableName.state && toggleEvent('editableName', node)" >
-        {{ node.text }}
+        {{ node[textName] }}
       </span>
       <span
         v-if="options.addNode.state == true"
@@ -78,7 +78,7 @@
     </div>
     <ul v-if="expanded">
       <tree-row
-        v-for="child in node.nodes"
+        v-for="child in node[nodesName]"
         :ref="'tree-row-' + child.id"
         :custom-options="customOptions"
         :custom-styles="customStyles"
@@ -86,6 +86,8 @@
         :key="child.id"
         :node="child"
         :parent-node="node"
+        :nodesName="nodesName"
+        :textName="textName"
         v-on:emitNodeChecked="emitNodeChecked"
         v-on:emitNodeExpanded="emitNodeExpanded"
         v-on:emitNodeSelected="emitNodeSelected">
@@ -105,7 +107,15 @@ export default {
     depth: Number,
     customOptions: Object,
     customStyles: Object,
-    parentNode: Object
+    parentNode: Object,
+    nodesName: {
+      default: 'nodes',
+      type: String
+    },
+    textName: { 
+      default: 'text',
+      type: String
+    }
   },
   data () {
     return {
@@ -257,8 +267,8 @@ export default {
       nodes.forEach((node) => {
         if (!node.state) node.state = { checked: false, expanded: false, selected: false }
         node.state[event] = state
-        if (node.nodes) {
-          _this.recCallNodes(state, event, node.nodes)
+        if (node[nodesName]) {
+          _this.recCallNodes(state, event, node[nodesName])
         }
       })
     },
@@ -267,8 +277,8 @@ export default {
       for (let i = 0; i < this.$children.length; i++) {
         this.$children[i].callNodesChecked(state)
       }
-      if (this.$children.length === 0 && this.node.nodes && this.node.nodes.length > 0) {
-        this.recCallNodes(state, 'checked', this.node.nodes)
+      if (this.$children.length === 0 && this.node[nodesName] && this.node[nodesName].length > 0) {
+        this.recCallNodes(state, 'checked', this.node[nodesName])
       }
     },
     callNodesDeselect () {
@@ -277,8 +287,8 @@ export default {
       for (let i = 0; i < this.$children.length; i++) {
         this.$children[i].callNodesDeselect()
       }
-      if (this.$children.length === 0 && this.node.nodes && this.node.nodes.length > 0) {
-        this.recCallNodes(false, 'selected', this.node.nodes)
+      if (this.$children.length === 0 && this.node[nodesName] && this.node[nodesName].length > 0) {
+        this.recCallNodes(false, 'selected', this.node[nodesName])
       }
     },
     callSpecificChild (arrIds, fname, args) {
